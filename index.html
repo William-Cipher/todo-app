@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Todo 列表基础版</title>
+    <title>Todo 列表 V2.0 —— 数据驱动版</title>
     <style>
         /* ================= 基础重置 ================= */
         * {
@@ -15,7 +15,6 @@
         /* ================= 页面整体布局与背景色 ================= */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            /* 柔和的渐变背景色 */
             background: linear-gradient(135deg, #e0eafc, #cfdef3);
             min-height: 100vh;
             display: flex;
@@ -31,7 +30,7 @@
             max-width: 450px;
             padding: 30px;
             border-radius: 16px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1); /* 柔和阴影 */
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
         }
 
         /* 标题样式 */
@@ -46,30 +45,27 @@
         /* ================= 输入区域布局 ================= */
         .input-group {
             display: flex;
-            gap: 10px; /* 输入框和按钮之间的间距 */
+            gap: 10px;
             margin-bottom: 25px;
         }
 
-        /* 输入框样式 */
         .input-group input {
-            flex: 1; /* 占据剩余空间 */
+            flex: 1;
             padding: 12px 16px;
             border: 2px solid #e0e0e0;
             border-radius: 8px;
             font-size: 16px;
             outline: none;
-            transition: border-color 0.3s ease; /* 过渡动画 */
+            transition: border-color 0.3s ease;
         }
 
-        /* 输入框获得焦点时的颜色 */
         .input-group input:focus {
             border-color: #6c5ce7;
         }
 
-        /* 按钮样式 */
         .input-group button {
             padding: 12px 24px;
-            background-color: #6c5ce7; /* 紫色主题色 */
+            background-color: #6c5ce7;
             color: white;
             border: none;
             border-radius: 8px;
@@ -79,7 +75,6 @@
             transition: background-color 0.3s ease, transform 0.1s ease;
         }
 
-        /* 按钮悬停与点击效果 */
         .input-group button:hover {
             background-color: #5b4cdb;
         }
@@ -89,10 +84,9 @@
 
         /* ================= 列表区域样式 ================= */
         #todo-list {
-            list-style: none; /* 去除默认的小圆点 */
+            list-style: none;
         }
 
-        /* 列表项样式 */
         #todo-list li {
             background-color: #f8f9fa;
             padding: 14px 16px;
@@ -102,68 +96,130 @@
             font-size: 16px;
             display: flex;
             align-items: center;
-            border-left: 4px solid #6c5ce7; /* 左侧点缀色 */
+            border-left: 4px solid #6c5ce7;
             box-shadow: 0 2px 5px rgba(0,0,0,0.02);
             transition: background-color 0.2s ease;
+            cursor: pointer; /* 提示整行可点击切换完成状态 */
         }
 
-        /* 鼠标悬停在列表项上时 */
         #todo-list li:hover {
             background-color: #f1f3f5;
+        }
+
+        /* 已完成状态：划线 + 变灰 */
+        #todo-list li.done {
+            color: #aaa;
+            text-decoration: line-through;
+            border-left-color: #b8b8b8;
+        }
+
+        /* 列表项右侧的删除按钮 */
+        #todo-list li .del-btn {
+            margin-left: auto;
+            border: none;
+            background: none;
+            color: #999;
+            font-size: 18px;
+            line-height: 1;
+            cursor: pointer;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        #todo-list li .del-btn:hover {
+            color: #e74c3c;
         }
     </style>
 </head>
 <body>
 
-    <!-- 使用一个容器包裹，方便进行卡片式布局 -->
     <div class="todo-container">
-        <h2>我的待办清单</h2>
-        
-        <!-- 要求1：输入框 + 按钮 -->
+        <h2>我的待办清单 V2.0</h2>
+
+        <!-- 输入框 + 添加按钮 -->
         <div class="input-group">
             <input type="text" id="todo-input" placeholder="今天要做什么？">
             <button id="add-btn">添加</button>
         </div>
 
-        <!-- 要求2：列表容器 (<ul>) -->
+        <!-- 列表容器：DOM 只是 todos 数组的投影，由 render() 统一生成 -->
         <ul id="todo-list"></ul>
     </div>
 
-    <!-- 要求7：<script> 放在 <body> 末尾，确保 DOM 已加载 -->
     <script>
-        // 获取 DOM 元素
-        const todoInput = document.getElementById('todo-input');
-        const addBtn = document.getElementById('add-btn');
-        const todoList = document.getElementById('todo-list');
+        // ============ ② DOM 引用 ============
+        const list   = document.querySelector('#todo-list');
+        const input  = document.querySelector('#todo-input');
+        const addBtn = document.querySelector('#add-btn');
 
-        // 要求3：点击按钮添加 Todo，用 addEventListener 监听 click 事件
-        addBtn.addEventListener('click', function() {
-            const inputValue = todoInput.value;
+        // ============ ③ 单一数据源 ============
+        // todos 是唯一的任务状态来源，页面（DOM）由 render() 根据 todos 生成
+        let todos = [];
 
-            // 要求5：边界检查，空输入不添加（用 trim() 检查）
-            if (inputValue.trim() === '') {
+        // ============ ⑥ 渲染函数：根据 todos 重画整个列表 ============
+        function render() {
+            list.innerHTML = '';               // 清空 → 重画（DOM 是数据的投影）
+            todos.forEach(t => {
+                const li = document.createElement('li');
+                li.textContent = t.text;
+                li.dataset.id = t.id;          // li 记住自己的 id，后续靠它定位
+                if (t.completed) li.classList.add('done');
+
+                // 点击整行 → 切换完成状态（箭头函数捕获 t.id，避免下标闭包陷阱）
+                li.addEventListener('click', () => toggleTodo(t.id));
+
+                // 删除按钮 ×
+                const delBtn = document.createElement('button');
+                delBtn.textContent = '×';
+                delBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();       // 防止顺带触发 li 的点击
+                    removeTodo(t.id);
+                });
+                li.appendChild(delBtn);
+
+                list.appendChild(li);
+            });
+        }
+
+        // ============ ⑦ 三个操作函数：不可变更新（不改原数组，生成新数组）+ 重渲染 ============
+        // 添加：展开生成新数组
+        function addTodo(text) {
+            todos = [...todos, { id: Date.now(), text, completed: false }];
+            render();
+        }
+
+        // 删除：filter 留下 id 不匹配的
+        function removeTodo(id) {
+            todos = todos.filter(t => t.id !== id);
+            render();
+        }
+
+        // 切换：map + 展开，只替换匹配的那一条，其余原样返回
+        function toggleTodo(id) {
+            todos = todos.map(t =>
+                t.id === id ? { ...t, completed: !t.completed } : t);
+            render();
+        }
+
+        // ============ 事件绑定 ============
+        addBtn.addEventListener('click', () => {
+            const value = input.value.trim();   // 边界检查：空输入（含纯空格）不添加
+            if (value === '') {
                 alert('输入内容不能为空！');
-                return; 
+                return;
             }
-
-            // 要求4：显示 Todo 列表，用 createElement 和 appendChild 创建并添加列表项
-            const newLi = document.createElement('li');
-            newLi.textContent = inputValue.trim();
-            todoList.appendChild(newLi);
-
-            // 要求6：清空输入框（添加后清空）
-            todoInput.value = '';
-            
-            // 额外优化：让输入框重新获得焦点，方便连续输入
-            todoInput.focus();
+            addTodo(value);
+            input.value = '';
+            input.focus();
         });
 
-        // 额外优化：支持按回车键添加
-        todoInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                addBtn.click();
-            }
+        // 支持按回车键添加
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') addBtn.click();
         });
+
+        // 首次渲染
+        render();
     </script>
 </body>
 </html>
