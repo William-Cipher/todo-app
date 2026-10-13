@@ -82,6 +82,37 @@
             transform: scale(0.96);
         }
 
+        /* ================= 筛选按钮区域 ================= */
+        .filter-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .filter-group button {
+            flex: 1;
+            padding: 8px 0;
+            background-color: #f1f3f5;
+            color: #666;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .filter-group button:hover {
+            background-color: #e9ecef;
+        }
+
+        /* 当前选中的筛选按钮 */
+        .filter-group button.active {
+            background-color: #6c5ce7;
+            border-color: #6c5ce7;
+            color: #fff;
+            font-weight: 600;
+        }
+
         /* ================= 列表区域样式 ================= */
         #todo-list {
             list-style: none;
@@ -142,6 +173,13 @@
             <button id="add-btn">添加</button>
         </div>
 
+        <!-- 筛选按钮：all / active / done（视图状态，刷新后回到默认 all） -->
+        <div class="filter-group">
+            <button data-filter="all" class="active">全部</button>
+            <button data-filter="active">未完成</button>
+            <button data-filter="done">已完成</button>
+        </div>
+
         <!-- 列表容器：DOM 只是 todos 数组的投影，由 render() 统一生成 -->
         <ul id="todo-list"></ul>
     </div>
@@ -156,10 +194,17 @@
         // todos 是唯一的任务状态来源，页面（DOM）由 render() 根据 todos 生成
         let todos = [];
 
-        // ============ ⑥ 渲染函数：根据 todos 重画整个列表 ============
+        // ============ ④ 视图状态 ============
+        // filter 只决定「显示哪些」，属于视图状态，不写入 localStorage，刷新回到默认 'all'
+        let filter = 'all';
+
+        // ============ ⑥ 渲染函数：先过滤，再根据 todos 重画整个列表 ============
         function render() {
             list.innerHTML = '';               // 清空 → 重画（DOM 是数据的投影）
-            todos.forEach(t => {
+            const shown = todos.filter(t =>
+                filter === 'all'  ? true :
+                filter === 'done' ? t.completed : !t.completed);
+            shown.forEach(t => {
                 const li = document.createElement('li');
                 li.textContent = t.text;
                 li.dataset.id = t.id;          // li 记住自己的 id，后续靠它定位
@@ -201,6 +246,12 @@
             render();
         }
 
+        // ============ 筛选：切换视图状态后重渲染（filter 是视图状态，不需要 save()） ============
+        function setFilter(f) {
+            filter = f;      // all / done / active
+            render();
+        }
+
         // ============ 事件绑定 ============
         addBtn.addEventListener('click', () => {
             const value = input.value.trim();   // 边界检查：空输入（含纯空格）不添加
@@ -216,6 +267,16 @@
         // 支持按回车键添加
         input.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') addBtn.click();
+        });
+
+        // 筛选按钮绑定：点击后切换视图状态并高亮当前按钮
+        document.querySelectorAll('.filter-group button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelector('.filter-group button.active')
+                        .classList.remove('active');
+                btn.classList.add('active');
+                setFilter(btn.dataset.filter);
+            });
         });
 
         // 首次渲染
