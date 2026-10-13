@@ -229,6 +229,7 @@
 
                 // 删除按钮 ×
                 const delBtn = document.createElement('button');
+                delBtn.className = 'del-btn';   // 类名供 CSS 定位样式
                 delBtn.textContent = '×';
                 delBtn.addEventListener('click', (e) => {
                     e.stopPropagation();       // 防止顺带触发 li 的点击
