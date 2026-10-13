@@ -185,14 +185,28 @@
     </div>
 
     <script>
+        // ============ ① 存储的键名 ============
+        const KEY = 'todos';
+
         // ============ ② DOM 引用 ============
         const list   = document.querySelector('#todo-list');
         const input  = document.querySelector('#todo-input');
         const addBtn = document.querySelector('#add-btn');
 
+        // ============ ⑤ 存 / 取：localStorage 持久化 ============
+        function save() {
+            localStorage.setItem(KEY, JSON.stringify(todos));
+        }
+        function load() {
+            const raw = localStorage.getItem(KEY);
+            if (raw === null) return [];        // 没存过 → 空数组
+            return JSON.parse(raw);             // 存过 → 解析
+        }
+
         // ============ ③ 单一数据源 ============
         // todos 是唯一的任务状态来源，页面（DOM）由 render() 根据 todos 生成
-        let todos = [];
+        // 初始数据从 localStorage 恢复 → 刷新后数据仍在
+        let todos = load();
 
         // ============ ④ 视图状态 ============
         // filter 只决定「显示哪些」，属于视图状态，不写入 localStorage，刷新回到默认 'all'
@@ -226,24 +240,24 @@
             });
         }
 
-        // ============ ⑦ 三个操作函数：不可变更新（不改原数组，生成新数组）+ 重渲染 ============
+        // ============ ⑦ 三个操作函数：不可变更新 + 三步口诀「改数据 → save → render」 ============
         // 添加：展开生成新数组
         function addTodo(text) {
             todos = [...todos, { id: Date.now(), text, completed: false }];
-            render();
+            save(); render();
         }
 
         // 删除：filter 留下 id 不匹配的
         function removeTodo(id) {
             todos = todos.filter(t => t.id !== id);
-            render();
+            save(); render();
         }
 
         // 切换：map + 展开，只替换匹配的那一条，其余原样返回
         function toggleTodo(id) {
             todos = todos.map(t =>
                 t.id === id ? { ...t, completed: !t.completed } : t);
-            render();
+            save(); render();
         }
 
         // ============ 筛选：切换视图状态后重渲染（filter 是视图状态，不需要 save()） ============
