@@ -253,6 +253,12 @@
             save(); render();
         }
 
+        // 清除所有已完成任务（脱离 AI 手写；控制台调用 clearCompleted() 即可验证）
+        function clearCompleted() {
+            todos = todos.filter(t => !t.completed);
+            save(); render();
+        }
+
         // 切换：map + 展开，只替换匹配的那一条，其余原样返回
         function toggleTodo(id) {
             todos = todos.map(t =>
