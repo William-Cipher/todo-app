@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<html lang="zh-CN" data-page-node-id="fYuHFSBlHsEgaZKRGwTCWe">
+<head data-page-node-id="l93EqeB4dvgl4sKWVD1vC1">
+    <meta charset="UTF-8" data-page-node-id="P3R0FfyNeZSe0VQ9F3RKoD">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" data-page-node-id="0TK0r8zepiHgvRKHPqtVTx">
     <title>Todo 列表 V2.0 —— 数据驱动版</title>
     <style>
         /* ================= 基础重置 ================= */
@@ -162,26 +162,26 @@
         }
     </style>
 </head>
-<body>
+<body data-page-node-id="Fwru27hccqVTZH2UWWZG0n">
 
-    <div class="todo-container">
-        <h2>我的待办清单 V2.0</h2>
+    <div class="todo-container" data-page-node-id="H67sreFLgoN6RJZT7zwITF">
+        <h2 data-page-node-id="34DkD5kqIOEF0lnP81spFi">我的待办清单 V2.0</h2>
 
         <!-- 输入框 + 添加按钮 -->
-        <div class="input-group">
-            <input type="text" id="todo-input" placeholder="今天要做什么？">
-            <button id="add-btn">添加</button>
+        <div class="input-group" data-page-node-id="sowrnFqgGmt8EGwdZAEdoi">
+            <input type="text" id="todo-input" placeholder="今天要做什么？" data-page-node-id="lYt4R0fZCDteBY8CsB3mIz">
+            <button id="add-btn" data-page-node-id="LR81kem5TByS0aoVUInmWh">添加</button>
         </div>
 
         <!-- 筛选按钮：all / active / done（视图状态，刷新后回到默认 all） -->
-        <div class="filter-group">
-            <button data-filter="all" class="active">全部</button>
-            <button data-filter="active">未完成</button>
-            <button data-filter="done">已完成</button>
+        <div class="filter-group" data-page-node-id="c29EESgYNiPRneFeFiExud">
+            <button data-filter="all" class="active" data-page-node-id="klpMGpHnI8igFL5gpsBLCZ">全部</button>
+            <button data-filter="active" data-page-node-id="GYSEsbwZdIpxaA3BGJMwod">未完成</button>
+            <button data-filter="done" data-page-node-id="puqRld0BCWlddA6KGPBAgP">已完成</button>
         </div>
 
         <!-- 列表容器：DOM 只是 todos 数组的投影，由 render() 统一生成 -->
-        <ul id="todo-list"></ul>
+        <ul id="todo-list" data-page-node-id="shhchPkfBKKIsNv1eqm0ra"></ul>
     </div>
 
     <script>
@@ -195,6 +195,7 @@
 
         // ============ ⑤ 存 / 取：localStorage 持久化 ============
         function save() {
+            console.log('save()');
             localStorage.setItem(KEY, JSON.stringify(todos));
         }
         function load() {
@@ -213,7 +214,9 @@
         let filter = 'all';
 
         // ============ ⑥ 渲染函数：先过滤，再根据 todos 重画整个列表 ============
+        // W8：渲染只负责「造节点 + 打标记」，不再给每个 li / button 单独绑监听器
         function render() {
+            console.log('render()');
             list.innerHTML = '';               // 清空 → 重画（DOM 是数据的投影）
             const shown = todos.filter(t =>
                 filter === 'all'  ? true :
@@ -221,42 +224,56 @@
             shown.forEach(t => {
                 const li = document.createElement('li');
                 li.textContent = t.text;
-                li.dataset.id = t.id;          // li 记住自己的 id，后续靠它定位
+                li.dataset.id = t.id;          // 让节点记住它是哪条数据（事件委托靠它定位）
                 if (t.completed) li.classList.add('done');
 
-                // 点击整行 → 切换完成状态（箭头函数捕获 t.id，避免下标闭包陷阱）
-                li.addEventListener('click', () => toggleTodo(t.id));
-
-                // 删除按钮 ×
+                // 删除按钮 ×：只打标记，不绑事件（交互统一交给父容器 ul）
                 const delBtn = document.createElement('button');
-                delBtn.className = 'del-btn';   // 类名供 CSS 定位样式
+                delBtn.className = 'del-btn';
+                delBtn.dataset.action = 'delete';   // [data-action="delete"] 供委托识别
                 delBtn.textContent = '×';
-                delBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();       // 防止顺带触发 li 的点击
-                    removeTodo(t.id);
-                });
                 li.appendChild(delBtn);
 
                 list.appendChild(li);
             });
         }
 
+        // ============ ⑧ 事件委托：整个列表只在 ul 上绑一次监听器 ============
+        // 依赖冒泡：点击 li 或按钮的事件都会冒泡到 ul，由这里统一识别、分流
+        list.addEventListener('click', (e) => {
+            if (!(e.target instanceof Element)) return;        // ① 防：target 不是元素
+            const item = e.target.closest('li');               // 往上找最近的 li
+            if (!item || !list.contains(item)) return;         // ② 防：点空白 → null；③ 防越界
+            const id = Number(item.dataset.id);                // dataset 取出来是字符串，转回数字
+            if (!id) return;                                   // ④ 防：li 上没有 data-id（NaN 也在此拦住）
+
+            const delBtn = e.target.closest('[data-action="delete"]');
+            if (delBtn && item.contains(delBtn)) {             // 点的是删除按钮
+                removeTodo(id);
+                return;                                        // ⑤ 分流后返回：一次点击只做一个操作
+            }
+            toggleTodo(id);                                    // 否则整行点击 = 切换完成状态
+        });
+
         // ============ ⑦ 三个操作函数：不可变更新 + 三步口诀「改数据 → save → render」 ============
         // 添加：展开生成新数组
         function addTodo(text) {
             todos = [...todos, { id: Date.now(), text, completed: false }];
+            console.log('addTodo', text);
             save(); render();
         }
 
         // 删除：filter 留下 id 不匹配的
         function removeTodo(id) {
             todos = todos.filter(t => t.id !== id);
+            console.log('removeTodo', id);
             save(); render();
         }
 
         // 清除所有已完成任务（脱离 AI 手写；控制台调用 clearCompleted() 即可验证）
         function clearCompleted() {
             todos = todos.filter(t => !t.completed);
+            console.log('clearCompleted()');
             save(); render();
         }
 
@@ -264,6 +281,7 @@
         function toggleTodo(id) {
             todos = todos.map(t =>
                 t.id === id ? { ...t, completed: !t.completed } : t);
+            console.log('toggleTodo', id);
             save(); render();
         }
 

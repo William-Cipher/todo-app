@@ -1,0 +1,15 @@
+A1 添加两条后 li 数量 = 2
+A2 点文字后的调用序列 = ["toggleTodo(1792486130713)","save()","render()"] | li.done = true
+A3 点删除后的调用序列 = ["removeTodo(1792486130713)","save()","render()"] | 剩余 li 数量 = 1
+A4 点空白后的调用序列 = [] | 页面错误 = 无
+A5 新增任务点击后的调用序列 = ["toggleTodo(1792486130721)","save()","render()"]
+B0 缺陷版替换成功 = true
+B1 缺陷版点删除后的调用序列 = ["removeTodo(1792486130733)","save()","render()","toggleTodo(1792486130733)","save()","render()"]
+B2 缺陷版：页面看起来删掉了吗 = 是（看起来正常）
+
+===== 统一测试表（修复版）=====
+点击任务文字，只切换 → 通过（仅 toggleTodo + render）
+点击删除按钮，只删除 → 通过（仅 removeTodo + render，无 toggle）
+点击删除按钮里的文字/图标 → 通过（closest 命中 [data-action=delete]）
+点击列表空白处，不报错 → 通过（closest 返回 null 被 if (!item) return 挡住）
+动态新增任务后能正常交互 → 通过（监听器在 ul 上，新增节点自动生效）
