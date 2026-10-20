@@ -1,29 +1,26 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Todo 列表 V2.0 —— 数据驱动版</title>
+<html lang="zh-CN" data-page-node-id="2dC2tt5bkLxu3zglkZNgw5">
+<head data-page-node-id="JbfLHsIcqPYWrlriqAwNDa">
+    <meta charset="UTF-8" data-page-node-id="hFT9OnOKBzRVEaBVlTg4vs">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" data-page-node-id="LZ1H6u7jyIVRa5UkyOUzgk">
+    <title>Todo 列表 V2.1 —— 支持编辑</title>
     <style>
-        /* ================= 基础重置 ================= */
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
         }
 
-        /* ================= 页面整体布局与背景色 ================= */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #e0eafc, #cfdef3);
             min-height: 100vh;
             display: flex;
-            justify-content: center; /* 水平居中 */
-            align-items: center;     /* 垂直居中 */
+            justify-content: center;
+            align-items: center;
             padding: 20px;
         }
 
-        /* ================= 卡片式容器 ================= */
         .todo-container {
             background: #ffffff;
             width: 100%;
@@ -33,7 +30,6 @@
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
         }
 
-        /* 标题样式 */
         .todo-container h2 {
             margin-bottom: 20px;
             color: #333;
@@ -42,7 +38,6 @@
             font-weight: 600;
         }
 
-        /* ================= 输入区域布局 ================= */
         .input-group {
             display: flex;
             gap: 10px;
@@ -78,11 +73,11 @@
         .input-group button:hover {
             background-color: #5b4cdb;
         }
+
         .input-group button:active {
             transform: scale(0.96);
         }
 
-        /* ================= 筛选按钮区域 ================= */
         .filter-group {
             display: flex;
             gap: 8px;
@@ -105,7 +100,6 @@
             background-color: #e9ecef;
         }
 
-        /* 当前选中的筛选按钮 */
         .filter-group button.active {
             background-color: #6c5ce7;
             border-color: #6c5ce7;
@@ -113,7 +107,6 @@
             font-weight: 600;
         }
 
-        /* ================= 列表区域样式 ================= */
         #todo-list {
             list-style: none;
         }
@@ -127,26 +120,32 @@
             font-size: 16px;
             display: flex;
             align-items: center;
+            gap: 4px;
             border-left: 4px solid #6c5ce7;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
             transition: background-color 0.2s ease;
-            cursor: pointer; /* 提示整行可点击切换完成状态 */
+            cursor: pointer;
         }
 
         #todo-list li:hover {
             background-color: #f1f3f5;
         }
 
-        /* 已完成状态：划线 + 变灰 */
+        #todo-list li .todo-text {
+            flex: 1;
+            min-width: 0;
+            overflow-wrap: anywhere;
+        }
+
         #todo-list li.done {
             color: #aaa;
             text-decoration: line-through;
             border-left-color: #b8b8b8;
         }
 
-        /* 列表项右侧的删除按钮 */
-        #todo-list li .del-btn {
-            margin-left: auto;
+        #todo-list li .icon-btn {
+            flex: none;
+            margin-left: 4px;
             border: none;
             background: none;
             color: #999;
@@ -157,125 +156,248 @@
             border-radius: 4px;
         }
 
-        #todo-list li .del-btn:hover {
-            color: #e74c3c;
+        #todo-list li .edit-btn:hover   { color: #6c5ce7; }
+        #todo-list li .del-btn:hover    { color: #e74c3c; }
+        #todo-list li .save-btn:hover   { color: #27ae60; }
+        #todo-list li .cancel-btn:hover { color: #e74c3c; }
+
+        #todo-list li.editing {
+            background-color: #ffffff;
+            border-left-color: #f0b429;
+            cursor: default;
+            box-shadow: 0 0 0 2px rgba(108, 92, 231, 0.12);
+        }
+
+        #todo-list li.editing:hover {
+            background-color: #ffffff;
+        }
+
+        #todo-list li .edit-input {
+            flex: 1;
+            min-width: 0;
+            padding: 6px 10px;
+            font-size: 15px;
+            font-family: inherit;
+            color: #333;
+            border: 2px solid #6c5ce7;
+            border-radius: 6px;
+            outline: none;
+            background: #fff;
         }
     </style>
 </head>
-<body>
+<body data-page-node-id="FoNrEKeTV92Gy0npIQPXVs">
 
-    <div class="todo-container">
-        <h2>我的待办清单 V2.0</h2>
+    <div class="todo-container" data-page-node-id="B5th0YtNR4uxy6d9B2LlTg">
+        <h2 data-page-node-id="hlsD4FhalJRr1Yg3CaT5Ay">我的待办清单 V2.1</h2>
 
-        <!-- 输入框 + 添加按钮 -->
-        <div class="input-group">
-            <input type="text" id="todo-input" placeholder="今天要做什么？">
-            <button id="add-btn">添加</button>
+        <div class="input-group" data-page-node-id="j1C7TTCpCdaNcxwtn7mOdO">
+            <input type="text" id="todo-input" placeholder="今天要做什么？" data-page-node-id="NBCUUMYRdhRmcv2RI7QaY0">
+            <button id="add-btn" data-page-node-id="FyURgxqpew7PQl59E3jOnh">添加</button>
         </div>
 
-        <!-- 筛选按钮：all / active / done（视图状态，刷新后回到默认 all） -->
-        <div class="filter-group">
-            <button data-filter="all" class="active">全部</button>
-            <button data-filter="active">未完成</button>
-            <button data-filter="done">已完成</button>
+        <div class="filter-group" data-page-node-id="rRHE9VZwTQ5woo6G9Ep1WR">
+            <button data-filter="all" class="active" data-page-node-id="mE44wZEvwHdOmzmLakJN6c">全部</button>
+            <button data-filter="active" data-page-node-id="GXCyrVLFLNe8CEeWsxEQEO">未完成</button>
+            <button data-filter="done" data-page-node-id="7dYCy0KAJm8tS8oqRbzIO1">已完成</button>
         </div>
 
-        <!-- 列表容器：DOM 只是 todos 数组的投影，由 render() 统一生成 -->
-        <ul id="todo-list"></ul>
+        <ul id="todo-list" data-page-node-id="JsT32OKdIQ4YQ36h9ElwKO"></ul>
     </div>
 
     <script>
-        // ============ ① 存储的键名 ============
         const KEY = 'todos';
 
-        // ============ ② DOM 引用 ============
         const list   = document.querySelector('#todo-list');
         const input  = document.querySelector('#todo-input');
         const addBtn = document.querySelector('#add-btn');
 
-        // ============ ⑤ 存 / 取：localStorage 持久化 ============
         function save() {
+            console.log('save()');
             localStorage.setItem(KEY, JSON.stringify(todos));
         }
+
         function load() {
             const raw = localStorage.getItem(KEY);
-            if (raw === null) return [];        // 没存过 → 空数组
-            return JSON.parse(raw);             // 存过 → 解析
+            if (raw === null) return [];
+            return JSON.parse(raw);
         }
 
-        // ============ ③ 单一数据源 ============
-        // todos 是唯一的任务状态来源，页面（DOM）由 render() 根据 todos 生成
-        // 初始数据从 localStorage 恢复 → 刷新后数据仍在
         let todos = load();
-
-        // ============ ④ 视图状态 ============
-        // filter 只决定「显示哪些」，属于视图状态，不写入 localStorage，刷新回到默认 'all'
         let filter = 'all';
+        let editingId = null;
 
-        // ============ ⑥ 渲染函数：先过滤，再根据 todos 重画整个列表 ============
         function render() {
-            list.innerHTML = '';               // 清空 → 重画（DOM 是数据的投影）
+            console.log('render()');
+            list.innerHTML = '';
+
             const shown = todos.filter(t =>
                 filter === 'all'  ? true :
                 filter === 'done' ? t.completed : !t.completed);
+
             shown.forEach(t => {
                 const li = document.createElement('li');
-                li.textContent = t.text;
-                li.dataset.id = t.id;          // li 记住自己的 id，后续靠它定位
+                li.dataset.id = t.id;
                 if (t.completed) li.classList.add('done');
 
-                // 点击整行 → 切换完成状态（箭头函数捕获 t.id，避免下标闭包陷阱）
-                li.addEventListener('click', () => toggleTodo(t.id));
+                if (t.id === editingId) {
+                    li.classList.add('editing');
 
-                // 删除按钮 ×
-                const delBtn = document.createElement('button');
-                delBtn.className = 'del-btn';   // 类名供 CSS 定位样式
-                delBtn.textContent = '×';
-                delBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();       // 防止顺带触发 li 的点击
-                    removeTodo(t.id);
-                });
-                li.appendChild(delBtn);
+                    const editInput = document.createElement('input');
+                    editInput.type = 'text';
+                    editInput.className = 'edit-input';
+                    editInput.value = t.text;
+                    editInput.placeholder = '输入新的内容…';
+
+                    const saveBtn = document.createElement('button');
+                    saveBtn.className = 'icon-btn save-btn';
+                    saveBtn.dataset.action = 'save';
+                    saveBtn.title = '保存（Enter）';
+                    saveBtn.textContent = '✓';
+
+                    const cancelBtn = document.createElement('button');
+                    cancelBtn.className = 'icon-btn cancel-btn';
+                    cancelBtn.dataset.action = 'cancel';
+                    cancelBtn.title = '取消（Esc）';
+                    cancelBtn.textContent = '✗';
+
+                    li.append(editInput, saveBtn, cancelBtn);
+                } else {
+                    const span = document.createElement('span');
+                    span.className = 'todo-text';
+                    span.textContent = t.text;
+
+                    const editBtn = document.createElement('button');
+                    editBtn.className = 'icon-btn edit-btn';
+                    editBtn.dataset.action = 'edit';
+                    editBtn.title = '编辑';
+                    editBtn.textContent = '✎';
+
+                    const delBtn = document.createElement('button');
+                    delBtn.className = 'icon-btn del-btn';
+                    delBtn.dataset.action = 'delete';
+                    delBtn.title = '删除';
+                    delBtn.textContent = '×';
+
+                    li.append(span, editBtn, delBtn);
+                }
 
                 list.appendChild(li);
             });
+
+            if (editingId !== null) {
+                const inp = list.querySelector('.edit-input');
+                if (inp) {
+                    inp.focus();
+                    inp.setSelectionRange(inp.value.length, inp.value.length);
+                }
+            }
         }
 
-        // ============ ⑦ 三个操作函数：不可变更新 + 三步口诀「改数据 → save → render」 ============
-        // 添加：展开生成新数组
+        list.addEventListener('click', (e) => {
+            if (!(e.target instanceof Element)) return;
+            const item = e.target.closest('li');
+            if (!item || !list.contains(item)) return;
+            const id = Number(item.dataset.id);
+            if (!id) return;
+
+            const actionEl = e.target.closest('[data-action]');
+            const action = actionEl ? actionEl.dataset.action : null;
+
+            if (action === 'delete') { removeTodo(id); return; }
+            if (action === 'edit')   { startEdit(id);  return; }
+            if (action === 'save')   { commitEdit(id); return; }
+            if (action === 'cancel') { cancelEdit();   return; }
+
+            if (editingId !== null) return;
+
+            toggleTodo(id);
+        });
+
+        list.addEventListener('keydown', (e) => {
+            const el = e.target;
+            if (!(el instanceof Element) || !el.classList.contains('edit-input')) return;
+            const item = el.closest('li');
+            const id = item ? Number(item.dataset.id) : NaN;
+            if (!id) return;
+
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                commitEdit(id);
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                cancelEdit();
+            }
+        });
+
         function addTodo(text) {
             todos = [...todos, { id: Date.now(), text, completed: false }];
+            console.log('addTodo', text);
             save(); render();
         }
 
-        // 删除：filter 留下 id 不匹配的
         function removeTodo(id) {
             todos = todos.filter(t => t.id !== id);
+            if (editingId === id) editingId = null;
+            console.log('removeTodo', id);
             save(); render();
         }
 
-        // 清除所有已完成任务（脱离 AI 手写；控制台调用 clearCompleted() 即可验证）
         function clearCompleted() {
             todos = todos.filter(t => !t.completed);
+            console.log('clearCompleted()');
             save(); render();
         }
 
-        // 切换：map + 展开，只替换匹配的那一条，其余原样返回
         function toggleTodo(id) {
             todos = todos.map(t =>
                 t.id === id ? { ...t, completed: !t.completed } : t);
+            console.log('toggleTodo', id);
             save(); render();
         }
 
-        // ============ 筛选：切换视图状态后重渲染（filter 是视图状态，不需要 save()） ============
-        function setFilter(f) {
-            filter = f;      // all / done / active
+        function updateTodo(id, text) {
+            todos = todos.map(t =>
+                t.id === id ? { ...t, text } : t);
+            save(); render();
+        }
+
+        function startEdit(id) {
+            if (editingId === id) return;
+            editingId = id;
             render();
         }
 
-        // ============ 事件绑定 ============
+        function cancelEdit() {
+            editingId = null;
+            render();
+        }
+
+        function commitEdit(id) {
+            const inp = list.querySelector('.edit-input');
+            if (!inp) {
+                editingId = null;
+                render();
+                return;
+            }
+            const value = inp.value.trim();
+            if (value === '') {
+                alert('任务内容不能为空！');
+                inp.focus();
+                return;
+            }
+            editingId = null;
+            updateTodo(id, value);
+        }
+
+        function setFilter(f) {
+            filter = f;
+            editingId = null;
+            render();
+        }
+
         addBtn.addEventListener('click', () => {
-            const value = input.value.trim();   // 边界检查：空输入（含纯空格）不添加
+            const value = input.value.trim();
             if (value === '') {
                 alert('输入内容不能为空！');
                 return;
@@ -285,12 +407,10 @@
             input.focus();
         });
 
-        // 支持按回车键添加
         input.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') addBtn.click();
         });
 
-        // 筛选按钮绑定：点击后切换视图状态并高亮当前按钮
         document.querySelectorAll('.filter-group button').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.querySelector('.filter-group button.active')
@@ -300,7 +420,6 @@
             });
         });
 
-        // 首次渲染
         render();
     </script>
 </body>
